@@ -1,12 +1,13 @@
 #!/usr/bin/env python
+import os
 from time import sleep
+from urllib import parse
 from urllib.parse import urljoin
-import hashlib
+
 import requests
 from bs4 import BeautifulSoup
-from telegram import Bot
 from redis import Redis
-import os
+from telegram import Bot
 
 HEADERS = {
     'Accept-Encoding': 'gzip, deflate, br',
@@ -21,6 +22,7 @@ HEADERS = {
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 CHANNEL_NAM = os.environ.get('CHANNEL_NAM')
 ROOT_URL = "https://www.hostloc.com/forum.php?mod=forumdisplay&fid=45&filter=author&orderby=dateline"
+
 BOT = Bot(token=TELEGRAM_BOT_TOKEN)
 REDIS_CONN = Redis(host='redis', db=0)
 
@@ -33,18 +35,9 @@ def send_telegram_message(title, url):
     """
     try:
         BOT.send_message(CHANNEL_NAM, "{}\n{}".format(title, url))
-    except Exception:
+    except Exception as e:
+        print(e)
         send_telegram_message(title, url)
-
-
-def title_to_md5(title):
-    """
-    返回标题的MD5值
-    :param title: 标题
-    """
-    md5 = hashlib.md5()
-    md5.update(bytes(title, encoding='utf-8'))
-    return md5.hexdigest().upper()
 
 
 def get_response():
@@ -65,10 +58,10 @@ if __name__ == '__main__':
         for item in posts:
             if item.get("id") and item["id"].startswith("normalthread"):
                 post_a_tag = item.find("a", class_="xst")
-                post_url = urljoin(ROOT_URL, post_a_tag["href"])
+                tid = dict(parse.parse_qsl(parse.urlsplit(post_a_tag["href"]).query)).get("tid")  # 获取文章ID
+                post_url = urljoin(ROOT_URL, "/thread-{}-1-1.html".format(tid))
                 post_title = post_a_tag.get_text()
-                post_title_md5 = title_to_md5(post_title)
-                if REDIS_CONN.get(post_title_md5) is None:
+                if REDIS_CONN.get(tid) is None:
                     send_telegram_message(post_title, post_url)
-                    REDIS_CONN.set(post_title_md5, post_title, ex=24 * 60 * 60)
+                    REDIS_CONN.set(tid, post_title, ex=12 * 60 * 60)
         sleep(5)
