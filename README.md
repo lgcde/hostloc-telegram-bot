@@ -10,8 +10,8 @@ HostLoc论坛《美国VPS综合讨论》版块新帖TG机器人提醒
 ```bash
 $ whoami
 root
-$ git clone https://github.com/anshengme/HostLoc.git
-$ cd HostLoc/
+$ git clone https://github.com/anshengme/hostloc-telegram-bot.git
+$ cd hostloc-telegram-bot/
 $ vim docker-compose.yml
 ......
       TELEGRAM_BOT_TOKEN: ""   # 修改为你的TG机器人Token，如："797610865:AAHdrMSDAVxSDAV_QQOKMKCqPLKJhuEA3A8"
