@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 from redis import Redis
-from telegram import Bot
+from telegram import Bot, ParseMode
 
 HEADERS = {
     'Accept-Encoding': 'gzip, deflate, br',
@@ -22,7 +22,6 @@ HEADERS = {
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 CHANNEL_NAM = os.environ.get('CHANNEL_NAM')
 ROOT_URL = "https://www.hostloc.com/forum.php?mod=forumdisplay&fid=45&filter=author&orderby=dateline"
-
 BOT = Bot(token=TELEGRAM_BOT_TOKEN)
 REDIS_CONN = Redis(host='redis', db=0)
 
@@ -34,9 +33,11 @@ def send_telegram_message(title, url):
     :param url: 地址
     """
     try:
-        BOT.send_message(CHANNEL_NAM, "{}\n{}".format(title, url))
-    except Exception as e:
-        print(e)
+        BOT.send_message(CHANNEL_NAM,
+                         text="[{}]({})".format(title, url),
+                         parse_mode=ParseMode.MARKDOWN,
+                         disable_web_page_preview=True)
+    except Exception:
         send_telegram_message(title, url)
 
 
@@ -45,7 +46,9 @@ def get_response():
     获取页面返回的response
     """
     try:
-        return requests.get(ROOT_URL, headers=HEADERS)
+        response = requests.get(ROOT_URL, headers=HEADERS)
+        if response.status_code == 200:
+            return response
     except Exception:
         return get_response()
 
