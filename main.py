@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 from redis import Redis
-from telegram import Bot, ParseMode
+from telegram import Bot
 
 HEADERS = {
     'Accept-Encoding': 'gzip, deflate, br',
@@ -34,8 +34,7 @@ def send_telegram_message(title, url):
     """
     try:
         BOT.send_message(CHANNEL_NAM,
-                         text="[{}]({})".format(title, url),
-                         parse_mode=ParseMode.MARKDOWN,
+                         text="{}\n{}".format(title, url),
                          disable_web_page_preview=True)
     except Exception:
         send_telegram_message(title, url)
@@ -57,7 +56,10 @@ if __name__ == '__main__':
     while True:
         resp = get_response()
         soup = BeautifulSoup(resp.text, 'lxml')
-        posts = soup.find("table", id="threadlisttableid").findAll("tbody")
+        try:
+            posts = soup.find("table", id="threadlisttableid").findAll("tbody")
+        except AttributeError:
+            continue
         for item in posts:
             if item.get("id") and item["id"].startswith("normalthread"):
                 post_a_tag = item.find("a", class_="xst")
