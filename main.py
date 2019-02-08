@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 from redis import Redis
-from telegram import Bot
+from telegram import Bot, ParseMode
 
 HEADERS = {
     'Accept-Encoding': 'gzip, deflate, br',
@@ -34,7 +34,8 @@ def send_telegram_message(title, url):
     """
     try:
         BOT.send_message(CHANNEL_NAM,
-                         text="{}\n{}".format(title, url),
+                         text="[{}]({})".format(title, url),
+                         parse_mode=ParseMode.MARKDOWN,
                          disable_web_page_preview=True)
     except Exception:
         send_telegram_message(title, url)
