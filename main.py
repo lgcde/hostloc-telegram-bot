@@ -70,4 +70,4 @@ if __name__ == '__main__':
                 if REDIS_CONN.get(tid) is None:
                     send_telegram_message(post_title, post_url)
                     REDIS_CONN.set(tid, post_title, ex=12 * 60 * 60)
-        sleep(5)
+        sleep(10)
