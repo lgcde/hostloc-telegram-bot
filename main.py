@@ -57,7 +57,10 @@ if __name__ == '__main__':
     while True:
         resp = get_response()
         soup = BeautifulSoup(resp.text, 'lxml')
-        posts = soup.find("table", id="threadlisttableid").findAll("tbody")
+        try:
+            posts = soup.find("table", id="threadlisttableid").findAll("tbody")
+        except AttributeError:
+            continue
         for item in posts:
             if item.get("id") and item["id"].startswith("normalthread"):
                 post_a_tag = item.find("a", class_="xst")
